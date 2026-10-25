@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2f1b0e">
+  <title>Tony Carvery Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Title -->
+    <section id="screen-title" class="screen active">
+      <div class="title-card">
+        <canvas id="title-canvas" width="520" height="250"></canvas>
+        <h1 class="logo">Tony Carvery<span>Simulator</span></h1>
+        <p class="tagline">Gravy. Guests. Total chaos.</p>
+        <nav class="menu">
+          <button class="btn big" data-go="levels">Play</button>
+          <button class="btn" data-go="howto">How to Play</button>
+          <button class="btn" data-go="studio">Recording Studio</button>
+        </nav>
+        <p class="footnote">Best with sound on. Keyboard, or touch on phones and tablets.</p>
+      </div>
+    </section>
+
+    <!-- How to play -->
+    <section id="screen-howto" class="screen">
+      <div class="panel howto">
+        <header class="panel-head">
+          <button class="btn ghost" data-go="title">Back</button>
+          <h2>How to Play</h2>
+          <span class="page-count" id="howto-count"></span>
+        </header>
+        <div id="howto-pages"></div>
+        <footer class="howto-nav">
+          <button class="btn ghost" id="howto-prev">Previous</button>
+          <div class="dots" id="howto-dots"></div>
+          <button class="btn" id="howto-next">Next</button>
+        </footer>
+      </div>
+    </section>
+
+    <!-- Level select -->
+    <section id="screen-levels" class="screen">
+      <div class="panel">
+        <header class="panel-head">
+          <button class="btn ghost" data-go="title">Back</button>
+          <h2>Choose a Shift</h2>
+          <span></span>
+        </header>
+        <div id="level-grid" class="level-grid"></div>
+      </div>
+    </section>
+
+    <!-- Game -->
+    <section id="screen-game" class="screen">
+      <div id="game-wrap">
+        <canvas id="game-canvas"></canvas>
+      </div>
+      <div id="touch-controls" hidden>
+        <div id="stick"><div id="stick-knob"></div></div>
+        <div class="touch-buttons">
+          <button id="btn-dash" class="touch-btn dash">DASH</button>
+          <button id="btn-action" class="touch-btn action">ACTION</button>
+        </div>
+      </div>
+      <div id="level-intro" class="overlay" hidden></div>
+      <div id="pause" class="overlay" hidden>
+        <div class="modal">
+          <h2>Paused</h2>
+          <p>Have a cuppa. The gravy will wait.</p>
+          <div class="modal-actions">
+            <button class="btn" id="resume-btn">Resume</button>
+            <button class="btn ghost" id="restart-btn">Restart</button>
+            <button class="btn ghost" id="quit-btn">Quit to menu</button>
+          </div>
+        </div>
+      </div>
+      <div id="results" class="overlay" hidden></div>
+    </section>
+
+    <!-- Recording studio -->
+    <section id="screen-studio" class="screen">
+      <div class="panel studio">
+        <header class="panel-head">
+          <button class="btn ghost" data-go="title">Back</button>
+          <h2>Recording Studio</h2>
+          <span></span>
+        </header>
+        <p class="studio-intro">Record your own voices and sounds, and invent your own guests. Everything is saved in this browser on this device only.</p>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="sounds" role="tab">Sounds</button>
+          <button class="tab" data-tab="characters" role="tab">Characters</button>
+        </div>
+        <div id="studio-msg" class="studio-msg" hidden></div>
+        <div id="tab-sounds" class="tab-body"></div>
+        <div id="tab-characters" class="tab-body" hidden></div>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
