@@ -33,7 +33,7 @@ export function createStudio({ root, soundsEl, charsEl, msgEl, onCharactersChang
       return;
     }
     if (!canRecord()) {
-      message('Recording needs microphone access over https (or localhost) in a modern browser.');
+      message('Recording isn\'t available here. Use Upload to add a sound file instead.');
       return;
     }
     message('');
@@ -42,8 +42,8 @@ export function createStudio({ root, soundsEl, charsEl, msgEl, onCharactersChang
       rec = await startRecording(MAX_CLIP_MS);
     } catch (err) {
       message(err?.name === 'NotAllowedError'
-        ? 'Microphone permission was blocked. Allow the mic for this page in your browser settings and try again.'
-        : `Could not start recording: ${err?.message ?? err}`);
+        ? 'The microphone isn\'t available here. Use Upload instead: record a clip with your phone or computer\'s voice recorder and pick the file.'
+        : `Could not start recording: ${err?.message ?? err}. Use Upload to add a sound file instead.`);
       return;
     }
     active = rec;
@@ -65,6 +65,28 @@ export function createStudio({ root, soundsEl, charsEl, msgEl, onCharactersChang
       return;
     }
     await onBlob(blob);
+  }
+
+  const MAX_UPLOAD = 3 * 1024 * 1024;
+  const uploadHtml = '<label class="btn small ghost">Upload<input type="file" accept="audio/*" capture hidden data-a="up"></label>';
+
+  // Use an audio file instead of the microphone (works everywhere, and opens the voice recorder on phones).
+  function bindUpload(row, onBlob) {
+    const input = row.querySelector('[data-a="up"]');
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
+        message('That file isn\'t a sound. Pick an audio recording such as .m4a, .mp3, .wav or .ogg.');
+        return;
+      }
+      if (file.size > MAX_UPLOAD) {
+        message('That sound is too long. Keep clips under about 5 seconds (3 MB).');
+        return;
+      }
+      message('');
+      await onBlob(file);
+    };
   }
 
   // ---------- Sounds tab ----------
@@ -94,15 +116,18 @@ export function createStudio({ root, soundsEl, charsEl, msgEl, onCharactersChang
         ${slot.text ? `<span>"${esc(slot.text)}"</span>` : ''}</div>
         <div class="slot-actions">
           <button class="btn small rec" data-a="rec">Record</button>
+          ${uploadHtml}
           <button class="btn small ghost" data-a="play">Play</button>
           ${mine ? '<button class="btn small ghost" data-a="del">Use default</button>' : ''}
         </div>`;
-      row.querySelector('[data-a="rec"]').onclick = (e) => record(e.currentTarget, async (blob) => {
+      const save = async (blob) => {
         await putSound(slot.key, blob);
         setRecording(slot.key, blob);
         draw();
         previewSlot(slot);
-      });
+      };
+      row.querySelector('[data-a="rec"]').onclick = (e) => record(e.currentTarget, save);
+      bindUpload(row, save);
       row.querySelector('[data-a="play"]').onclick = () => previewSlot(slot);
       row.querySelector('[data-a="del"]')?.addEventListener('click', async () => {
         await deleteSound(slot.key);
@@ -148,8 +173,17 @@ export function createStudio({ root, soundsEl, charsEl, msgEl, onCharactersChang
         onCharactersChanged();
       };
       card.querySelector('[data-a="edit"]').onclick = () => openEditor(c);
-      card.querySelector('[data-a="delete"]').onclick = async () => {
-        if (!confirm(`Delete ${c.name || 'this character'}?`)) return;
+      const del = card.querySelector('[data-a="delete"]');
+      del.onclick = async () => {
+        if (!del.dataset.armed) {
+          del.dataset.armed = '1';
+          del.textContent = 'Tap again to delete';
+          setTimeout(() => {
+            delete del.dataset.armed;
+            del.textContent = 'Delete';
+          }, 3000);
+          return;
+        }
         await deleteCharacter(c.id);
         onCharactersChanged();
         renderCharacters();
@@ -306,13 +340,16 @@ export function createStudio({ root, soundsEl, charsEl, msgEl, onCharactersChang
             <div class="lbl"><b>${LINE_LABELS[kind]}<span class="tag ${mine ? 'mine' : ''}">${mine ? 'Recorded' : 'Default'}</span></b><span>e.g. "${esc(sample)}"</span></div>
             <div class="slot-actions">
               <button type="button" class="btn small rec" data-a="rec">Record</button>
+              ${uploadHtml}
               ${mine ? '<button type="button" class="btn small ghost" data-a="play">Play</button><button type="button" class="btn small ghost" data-a="del">Delete</button>' : ''}
             </div>`;
-          row.querySelector('[data-a="rec"]').onclick = (e) => record(e.currentTarget, async (blob) => {
+          const keep = async (blob) => {
             draft.lines[kind] = blob;
             draw();
             playBlob(blob);
-          });
+          };
+          row.querySelector('[data-a="rec"]').onclick = (e) => record(e.currentTarget, keep);
+          bindUpload(row, keep);
           row.querySelector('[data-a="play"]')?.addEventListener('click', () => playBlob(draft.lines[kind]));
           row.querySelector('[data-a="del"]')?.addEventListener('click', () => {
             delete draft.lines[kind];
